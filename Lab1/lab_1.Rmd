@@ -1,0 +1,123 @@
+---
+title: "732A90: Lab 1"
+author: "David Björelind, davbj395"
+date: "10/22/2020"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning=FALSE, message=FALSE)
+# Include packages here
+
+
+```
+
+## 1. Be careful when comparing
+```{r, echo=FALSE}
+x1<- 1/3
+x2<- 1/4
+
+# First expression
+if ( x1-x2 == 1/12 ) {
+print ("Subtraction is correct")
+} else {
+print ("Subtraction is wrong")
+}
+
+# Second expression
+x1 <- 1
+x2 <- 1/2
+if ( x1-x2 == 1/2 ) {
+print ("Subtraction is correct")
+} else {
+print ("Subtraction is wrong")
+}
+```
+
+The first expression tells us "Subtraction is wrong" and the second expression "Subtraction is correct". The first get it incorrect, because 1/3-1/4 cannot be represented in an exact way in binary. 1-1/2 can be represented correctly, which is why it gets the calculations correct.
+
+
+Improvements:
+use the comparing statement 'all.equal()' instead of using '==' will help this.
+
+```{r}
+options(digits=20)
+1/3-1/4
+1/12
+
+x1<- 1/3
+x2<- 1/4
+
+# First expression again
+if ( all.equal(x1-x2,1/12) ) {
+print ("Subtraction is correct")
+} else {
+print ("Subtraction is wrong")
+}
+```
+Now it gets it correct!
+
+## 2. Derivative
+```{r, echo=FALSE}
+derivative = function(x, func, epsilon){
+  return((func(x+epsilon)-func(x))/epsilon)
+}
+f = function(x){
+  return(x)
+}
+
+epsilon = 10^-15
+
+# Evaluating derivative
+ders = c()
+for (i in 1:10000){
+  temp = derivative(i, f, epsilon)
+  ders = c(ders, temp)
+}
+
+plot(x=1:10000, y=ders, type = 'l')
+```
+The results are very surprising! The expected answer would be **1** for each value from 1-1000, f'(x) = 1. This is not observed however. The values quickly becomes 0, and this can be explained by underflow. **f(x+e)-f(x)** will produce a very small number. When **x** gets larger, the misrepresentation of **f(x+e)-f(x)** will grow and at some point it will be **0**.
+
+```{r}
+(10+epsilon)-10
+(15+epsilon)-15
+(20+epsilon)-20
+```
+
+## 3. Variance
+```{r, echo=FALSE}
+# Variance function
+myvar = function(x){
+  n = length(x)
+  sum = sum(x)
+  temp = x^2 - (sum/n)^2
+  return(sum(temp)/(n-1))
+}
+# Generating numbers
+xx = rnorm(n=10000, mean=10^8, sd=sqrt(1))
+
+y = c()
+for (i in 2:10000){
+  var = myvar(xx[1:i])
+  vardif = var - var(xx[1:i])
+  y = c(y, vardif)
+}
+# Plottning the results 
+plot(x=2:10000, y=y, main="Plot of y: difference between myvar(Xi) and var(Xi)")
+```
+When adding many large numbers, there becomes a problem.
+
+## 4. Binomial Coefficient
+```{r}
+
+```
+
+## Another chunk
+```{r}
+
+```
+
+### All code for this report
+```{r ref.label=knitr::all_labels(), echo=TRUE, eval=FALSE}
+```

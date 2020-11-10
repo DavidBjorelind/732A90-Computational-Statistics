@@ -1,0 +1,42 @@
+---
+title: "732A90: Lab 1"
+author: "David Björelind, davbj395"
+date: "10/22/2020"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning=FALSE, message=FALSE)
+# Include packages here
+
+
+```
+
+## 1.
+```{r, echo=FALSE}
+
+```
+
+## 2.
+```{r, echo=FALSE}
+
+```
+
+## 3.
+```{r, echo=FALSE}
+
+```
+
+## 4.
+```{r}
+
+```
+
+## Another chunk
+```{r}
+
+```
+
+### Include all code for this report
+```{r ref.label=knitr::all_labels(), echo=TRUE, eval=FALSE}
+```

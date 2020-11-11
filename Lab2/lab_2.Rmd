@@ -1,36 +1,142 @@
 ---
-title: "732A90: Lab 1"
+title: "732A90: Lab 2"
 author: "David Björelind, davbj395"
-date: "10/22/2020"
+date: "11/11/2020"
 output: pdf_document
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE, warning=FALSE, message=FALSE)
 # Include packages here
-
-
 ```
 
-## 1.
+## Question 1: Optimizing parameters
+
+### 1:
+```{r, echo=FALSE}
+xgrid = seq(0,1, length.out = 100)
+
+f_tilde = function(a, x){
+  res = a[1] + a[2]*x + a[3]*x^2
+  return(res)
+}
+
+squared_error = function(a, param){
+  f_vals = f_tilde(a, param[1:3])
+  error = (param[4]-f_vals[1])^2 + (param[5]-f_vals[2])^2 + (param[6]-f_vals[3])^2 
+  return(error)
+}
+
+interpolate = function(x_start, func){
+  a = c(0,0,0)
+  param = c(x_start, func(x_start)) # x_vals, y_vals
+  opti = optim(par = a, fn = squared_error, param = param)
+  return(opti)
+}
+
+# Testing the created functions
+x_start = c(0.1, 0.4, 0.8)
+test_func = function(x){
+  return(-x*(1-x))
+}
+opti = interpolate(x_start, test_func)
+
+plot(x = xgrid, y = f_tilde(opti$par, xgrid), main = "Testing the function on f(x) = -x/(1-x)", ylab ="Function values", type="l")
+lines(x = x_start, y = test_func(x_start), col = 'green', type='p', lwd = '5')
+```
+
+### 2: 
 ```{r, echo=FALSE}
 
+approx_func = function(nint, func){
+  xgrid = seq(0,1, length.out = nint)
+  
+  opti = interpolate(c(0, 0.5, 1), func)
+  
+  res = f_tilde(opti$par, xgrid)
+  return(res)
+}
+
+test = approx_func(1000, test_func)
+plot(x = seq(0,1,length.out = 1000), y = test, type = 'l')
+lines(x = c(0, 0.5, 1), y = test_func(c(0, 0.5, 1)), col = 'green', type='p', lwd = '5')
 ```
 
-## 2.
+### 3: 
 ```{r, echo=FALSE}
+f_1 = function(x){
+  return(-x*(1-x))
+}
+f_2 = function(x){
+  return(-x*sin(10*pi*x))
+}
+f_tilde_1 = approx_func(5, f_1)
+f_tilde_2 = approx_func(100, f_2)
+xgrid = seq(0,1,length.out = 5)
+plot(x = xgrid, y = f_tilde_1, type = 'l', lwd=5, main="Plot of function 1: f(x) = -x*(1-x). Approximated and real function values", ylab = "Function value")
+#lines(x = xgrid, y = f_1(xgrid), col='green')
+lines(x = seq(0,1,length.out = 1000), y = f_1(seq(0,1,length.out = 1000)), col='green')
+legend("topleft", c("f_tilde","f values"),
+       col=c("black", "green"), lty=1, cex=1)
+
+plot(x = xgrid, y = f_tilde_2, type = 'l', lwd=5, main="Plot of function 2: f(x) = −x sin(10πx). Approximated and real function values", ylab = "Function value")
+lines(x = xgrid, y = f_2(xgrid), col='green')
+legend("topleft", c("f_tilde","f values"),
+       col=c("black", "green"), lty=1, cex=1)
+
 
 ```
 
-## 3.
-```{r, echo=FALSE}
+## Question 2: Maximizing likelihood
+### 1: 
+```{r}
+load(file = 'data.rdata')
 
+loglike = function(x, mu, sigma){
+  log = sum(dnorm(x, mean = mu, sd = sigma, log = TRUE))
+  return(log)
+}
+
+mle_mu = function(x){
+  return(mean(x))
+}
+mle_sigma = function(x){
+  mean = mean(x)
+  return(sum(x-mean)/length(x))
+}
+
+mle_mu(data)
+mle_sigma(data)
+loglike(data, mle_mu(data), mle_sigma(data))
 ```
 
-## 4.
+
+### 2: 
+```{r}
+loglike = function(par, x){
+  log = sum(dnorm(x, mean = par[1], sd = par[2], log = TRUE))
+  return(log)
+}
+init = c(0,1)
+# Using Conjugate Gradient Method
+opti = optim(par = init, fn = loglike, x=data, method=c("CG"), control=list(fnscale=-1)) # param goes in as first arg. in function!
+
+# Using BFGS
+
+
+```
+Bad idea to maximize likelihood!
+
+### 3: 
 ```{r}
 
 ```
+
+### 4: 
+```{r}
+
+```
+
 
 ## Another chunk
 ```{r}

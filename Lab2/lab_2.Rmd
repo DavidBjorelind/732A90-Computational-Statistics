@@ -1,8 +1,12 @@
 ---
-title: "732A90: Lab 2"
+title: '732A90: Lab 2'
 author: "David Björelind, davbj395"
 date: "11/11/2020"
-output: pdf_document
+output:
+  pdf_document:
+    latex_engine: xelatex
+  html_document:
+    df_print: paged
 ---
 
 ```{r setup, include=FALSE}
@@ -29,7 +33,7 @@ squared_error = function(a, param){
 
 interpolate = function(x_start, func){
   a = c(0,0,0)
-  param = c(x_start, func(x_start)) # x_vals, y_vals
+  param = c(x_start, func(x_start)) # contains x_vals and y_vals
   opti = optim(par = a, fn = squared_error, param = param)
   return(opti)
 }
@@ -51,14 +55,26 @@ lines(x = x_start, y = test_func(x_start), col = 'green', type='p', lwd = '5')
 approx_func = function(nint, func){
   xgrid = seq(0,1, length.out = nint)
   
-  opti = interpolate(c(0, 0.5, 1), func)
+## SECOND APPROACH ##
+#  res = c()
+#  for (i in 1:nint){
+#    start = 0+1/100*(i-1)
+#    end = start+1/100
+#    #cat("start: ", start, " end: ", end, "\n")
+#    opti = interpolate(c(start, (start+end)/2, end), func)
+#    val = f_tilde(opti$par, c(start, (start+end)/2))
+#    res = c(res, val)
+#  }
+#  return(res)
   
+## FIRST APPROACH ##
+  opti = interpolate(c(0, 0.5, 1), func)
   res = f_tilde(opti$par, xgrid)
   return(res)
 }
 
 test = approx_func(1000, test_func)
-plot(x = seq(0,1,length.out = 1000), y = test, type = 'l')
+plot(x = seq(0,1,length.out = 1000), y = test, type = 'l', xlab = "Function values", ylab ="x-values", main = "Testing the function on f(x) = -x/(1-x)")
 lines(x = c(0, 0.5, 1), y = test_func(c(0, 0.5, 1)), col = 'green', type='p', lwd = '5')
 ```
 
@@ -70,26 +86,27 @@ f_1 = function(x){
 f_2 = function(x){
   return(-x*sin(10*pi*x))
 }
-f_tilde_1 = approx_func(5, f_1)
+f_tilde_1 = approx_func(100, f_1)
 f_tilde_2 = approx_func(100, f_2)
-xgrid = seq(0,1,length.out = 5)
-plot(x = xgrid, y = f_tilde_1, type = 'l', lwd=5, main="Plot of function 1: f(x) = -x*(1-x). Approximated and real function values", ylab = "Function value")
-#lines(x = xgrid, y = f_1(xgrid), col='green')
-lines(x = seq(0,1,length.out = 1000), y = f_1(seq(0,1,length.out = 1000)), col='green')
+xgrid = seq(0,1,length.out = 100)
+plot(x = xgrid, y = f_tilde_1, type = 'l', lwd=5, main="Plot of function 1: f(x) = -x*(1-x)", ylab = "Function value")
+lines(x = xgrid, y = f_1(xgrid), col='green', lwd=2)
 legend("topleft", c("f_tilde","f values"),
        col=c("black", "green"), lty=1, cex=1)
 
-plot(x = xgrid, y = f_tilde_2, type = 'l', lwd=5, main="Plot of function 2: f(x) = −x sin(10πx). Approximated and real function values", ylab = "Function value")
-lines(x = xgrid, y = f_2(xgrid), col='green')
+plot(x = xgrid, y = f_tilde_2, type = 'l', lwd=5, main="Plot of function 2: f(x) = −x*sin(10*pi*x)", ylab = "Function value")
+lines(x = xgrid, y = f_2(xgrid), col='green', lwd=2)
 legend("topleft", c("f_tilde","f values"),
        col=c("black", "green"), lty=1, cex=1)
 
 
 ```
+The first function get a very good fit, the approximated function basially fits on top of the real function. For the second function on the other hand, the approximation does not fit well. This is because the fit only can do quadratic functions, whereas the sin-function needs a more complex approximation in order to produce a good fit. The best fit for the second function is a straight line across the x-axis, since the real function is above and under it an equal amount.
 
 ## Question 2: Maximizing likelihood
-### 1: 
-```{r}
+
+### 2: 
+```{r, echo=FALSE}
 load(file = 'data.rdata')
 
 loglike = function(x, mu, sigma){
@@ -102,46 +119,81 @@ mle_mu = function(x){
 }
 mle_sigma = function(x){
   mean = mean(x)
-  return(sum(x-mean)/length(x))
+  a = (x-mean)^2
+  res = sum(a)/length(x)
+  return(sqrt(res))
 }
 
-mle_mu(data)
-mle_sigma(data)
-loglike(data, mle_mu(data), mle_sigma(data))
+cat("MLE mu: ", mle_mu(data), "\n")
+cat("MLE sigma: ", mle_sigma(data), "\n")
+cat("log-likelihood: ", loglike(data, mle_mu(data), mle_sigma(data)), "\n")
 ```
 
 
-### 2: 
-```{r}
+### 3: 
+```{r, echo=FALSE}
+grads = function(par, x){
+  n = length(x)
+  mean = mean(x)
+  grad_mu = n*(mean-par[1])/par[2]^2
+  a = (x-par[1])^2
+  grad_sigma = sum(a)/par[2]^3 - n/par[2]
+  return(c(grad_mu, grad_sigma))
+}
+
 loglike = function(par, x){
   log = sum(dnorm(x, mean = par[1], sd = par[2], log = TRUE))
   return(log)
 }
-init = c(0,1)
+
+# Matrix to store the answers
+results = matrix(nrow = 4, ncol = 6)
+rownames(results) = c("CG", "CG with gradients", "BFGS", "BFGS with gradient")
+colnames(results) = c("mu", "sigma", "log-likelihood", "count: fn", "count: gr", "conv")
+
 # Using Conjugate Gradient Method
-opti = optim(par = init, fn = loglike, x=data, method=c("CG"), control=list(fnscale=-1)) # param goes in as first arg. in function!
+init = c(0,1)
+opti_CG = optim(par = init, fn = loglike, x=data, method=c("CG"), control=list(fnscale=-1))
+results[1,] = c(opti_CG$par, opti_CG$value, opti_CG$counts, opti_CG$convergence)
+
+# Using CG with gradients
+opti_CG_g = optim(par = init, fn = loglike, gr = grads , x=data, method=c("CG"), control=list(fnscale=-1))
+results[2,] = c(opti_CG_g$par, opti_CG_g$value, opti_CG_g$counts, opti_CG_g$convergence)
 
 # Using BFGS
+opti_BFGS = optim(par = init, fn = loglike, x=data, method=c("BFGS"), control=list(fnscale=-1))
+results[3,] = c(opti_BFGS$par, opti_BFGS$value, opti_BFGS$counts, opti_BFGS$convergence)
 
-
-```
-Bad idea to maximize likelihood!
-
-### 3: 
-```{r}
-
-```
-
-### 4: 
-```{r}
+# Using BFGS with gradients
+opti_BFGS_g = optim(par = init, fn = loglike, gr = grads, x=data, method=c("BFGS"), control=list(fnscale=-1))
+results[4,] = c(opti_BFGS_g$par, opti_BFGS_g$value, opti_BFGS_g$counts, opti_BFGS_g$convergence)
 
 ```
+Bad idea to maximize likelihood! This is because we want to prevent overflow. Without log, we would try to multiply 100 relatively large number which could cause overflow. With log, we sum these numbers instead which gives us a much smaller value.
 
-
-## Another chunk
-```{r}
-
+### 4:
+Here follows a table with optimal parameters, best log-likelihood value, and iteration counts for all the cases:
+```{r, echo=FALSE}
+print(results)
+cat("\n")
 ```
+Here follows a table with gradients for all the cases:
+```{r, echo=FALSE}
+gradients = matrix(nrow = 4, ncol = 2)
+rownames(gradients) = c("CG", "CG with gradients", "BFGS", "BFGS with gradient")
+colnames(gradients) = c("mu gradient", "sigma gradient")
+for (i in 1:4){
+  gradients[i,] = grads(results[i,1:2], data)
+}
+print(gradients)
+```
+From the results we can that in all of the cases, the algorithm converged (given **0** as convergence value). This is further confirmed by seeing that the gradients of optimal parameters are (close to) zero. When using CG we get a great advantage from using gradients, whereas when using BFGS there is no advantage in using gradients. This means that the "finite-difference approximation" does the job as well as the gradient does at finding new points.
+
+The optimal parameters were also found by the maximum likelihood estimators using their analytical expressions!
+
+
+The recommended setting would be **BFGS** without gradient. It gets the same number of iterations as with gradient, making it simple to use.
+
 
 ### Include all code for this report
 ```{r ref.label=knitr::all_labels(), echo=TRUE, eval=FALSE}

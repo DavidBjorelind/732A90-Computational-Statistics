@@ -1,0 +1,105 @@
+---
+title: "732A90: Lab 3"
+author: "David Björelind, davbj395"
+date: "11/18/2020"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning=FALSE, message=FALSE)
+# Include packages here
+library(poweRlaw)
+
+```
+
+## Question 1: Stable distribution
+
+### 1.
+```{r, echo=FALSE}
+
+func = function(x, c){
+  res = c/(sqrt(2*pi))*exp(-c^2/(2*x))*x^(-3/2)*1
+  return(res)
+}
+
+power_func = function(x, alpha, tmin){
+  res = c()
+  for(i in 1:length(x)){
+    ones = if(x[i] >= tmin) 1 else 0
+    f = (alpha-1)/tmin*(x[i]/tmin)^(-alpha)* ones
+    res = c(res, f)
+  }
+  #ones = if(x >= tmin) 1 else 0
+  #res = (alpha-1)/tmin*(x/tmin)^(-alpha)*1 #ones
+  return(res)
+}
+
+xgrid = seq(0, 200, length.out = 100)
+
+c = 1
+alpha = 2
+tmin = 10
+f_val = func(xgrid, c)
+power_val = power_func(xgrid, alpha, tmin)
+
+grid = seq(0.001, 200, length.out = 10000)
+vals = func(grid, c)
+pos = sum(vals[1:(10000/200)])/sum(vals) # Density between 0 to 1
+
+plot(x = xgrid, y = f_val, type='l', col="black", ylab = "y-values", ylim=c(0, 0.05), main="f and fp")
+lines(x = xgrid, y = power_val, type='l', col="red")
+
+```
+One problem is that the two functions has different support. The power-law is supported on (Tmin, inf) while f(x) has support on (0, inf). This means that support for (0, Tmin) is missing from power-law.
+
+```{r, echo=FALSE}
+#majorizing = function(y, tmin, alpha){
+#  if (y<tmin){
+#    return(density)
+#  } else {
+#    return(rplcon(n=1, xmin=tmin, alpha=alpha))
+#  }
+#}
+
+```
+
+### 2.
+```{r, echo=FALSE}
+
+acc_rej = function(c, tmin, alpha, p){
+  while (1<2) {
+    choice = rbinom(1,1,p)
+    if (choice == 1){
+      y = runif(1, 0,1)
+    } else{
+      y = rplcon(n=1, xmin=tmin, alpha=alpha)
+      
+    }
+    # Different values for c
+    u = runif(1, 0,1)
+    if(u <= func(y)/(c){ # 1 if unif and f_power else
+      return(y)
+    }
+  }
+}
+
+```
+http://www.columbia.edu/~ks20/4703-Sigman/4703-07-Notes-ARM.pdf
+## 3.
+```{r, echo=FALSE}
+
+```
+
+## 4.
+```{r, echo=FALSE}
+
+```
+
+## Another chunk
+```{r}
+
+```
+
+### Include all code for this report
+```{r ref.label=knitr::all_labels(), echo=TRUE, eval=FALSE}
+```

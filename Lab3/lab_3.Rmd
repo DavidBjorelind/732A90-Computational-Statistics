@@ -29,8 +29,6 @@ power_func = function(x, alpha, tmin){
     f = (alpha-1)/tmin*(x[i]/tmin)^(-alpha)* ones
     res = c(res, f)
   }
-  #ones = if(x >= tmin) 1 else 0
-  #res = (alpha-1)/tmin*(x/tmin)^(-alpha)*1 #ones
   return(res)
 }
 
@@ -44,7 +42,7 @@ power_val = power_func(xgrid, alpha, tmin)
 
 grid = seq(0.001, 200, length.out = 10000)
 vals = func(grid, c)
-pos = sum(vals[1:(10000/200)])/sum(vals) # Density between 0 to 1
+pos = sum(vals[1:(10000/200)])/sum(vals) # Density between 0 to 1, meaning probability for value to occur there
 
 plot(x = xgrid, y = f_val, type='l', col="black", ylab = "y-values", ylim=c(0, 0.05), main="f and fp")
 lines(x = xgrid, y = power_val, type='l', col="red")
@@ -66,18 +64,21 @@ One problem is that the two functions has different support. The power-law is su
 ### 2.
 ```{r, echo=FALSE}
 
-acc_rej = function(c, tmin, alpha, p){
+acc_rej = function(tmin, alpha, p){
   while (1<2) {
     choice = rbinom(1,1,p)
     if (choice == 1){
       y = runif(1, 0,1)
+      major_dens = power_func(y, alpha, tmin)
+      c = 1
     } else{
       y = rplcon(n=1, xmin=tmin, alpha=alpha)
-      
+      major_dens = 1
+      c = 1
     }
     # Different values for c
     u = runif(1, 0,1)
-    if(u <= func(y)/(c){ # 1 if unif and f_power else
+    if(u <= func(y)/(major_dens*c)){ # 1 if unif and f_power else
       return(y)
     }
   }
@@ -85,13 +86,33 @@ acc_rej = function(c, tmin, alpha, p){
 
 ```
 http://www.columbia.edu/~ks20/4703-Sigman/4703-07-Notes-ARM.pdf
-## 3.
+### 3.
+```{r, echo=FALSE}
+# Generate a large sample
+n_samples = 1000
+rejects = 0 # Global variable to count number of rejections
+for(i in 1:n_samples){
+  
+}
+
+```
+
+## Question 2: Laplace distribution
+
+### 1.
 ```{r, echo=FALSE}
 
 ```
 
-## 4.
-```{r, echo=FALSE}
+### 2. 
+```{r}
+
+```
+
+
+
+## Another chunk
+```{r}
 
 ```
 
@@ -99,7 +120,6 @@ http://www.columbia.edu/~ks20/4703-Sigman/4703-07-Notes-ARM.pdf
 ```{r}
 
 ```
-
 ### Include all code for this report
 ```{r ref.label=knitr::all_labels(), echo=TRUE, eval=FALSE}
 ```

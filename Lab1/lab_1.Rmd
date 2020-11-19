@@ -12,7 +12,7 @@ knitr::opts_chunk$set(echo = TRUE, warning=FALSE, message=FALSE)
 
 ```
 
-## 1. Be careful when comparing
+## Question 1: Be careful when comparing
 ```{r, echo=FALSE}
 x1<- 1/3
 x2<- 1/4
@@ -57,7 +57,7 @@ print ("Subtraction is wrong")
 ```
 Now it gets it correct!
 
-## 2. Derivative
+## Question 2: Derivative
 ```{r, echo=FALSE}
 derivative = function(x, func, epsilon){
   return((func(x+epsilon)-func(x))/epsilon)
@@ -86,7 +86,7 @@ Some experimentation:
 (20+epsilon)-20
 ```
 
-## 3. Variance
+## Question 3: Variance
 ```{r, echo=FALSE}
 # Variance function
 myvar = function(x){
@@ -109,7 +109,16 @@ for (i in 2:10000){
 # Plottning the results 
 plot(x=2:10000, y=y, main="Plot of Y: difference between myvar(Xi) and var(Xi)", xlab = "Size of array used", ylab = "Y = myvar(Xi) - var(Xi)")
 ```
-From the plot we can see that **myvar** differs from **var** +- 4 through the entire array. This difference is quite big since the real variance is **1**. We get the same error size, no matter how many numbers are used for calculation. My function works well on samples of smaller size. Adding many large numbers, which is done here, becomes a problem due to overflow. The middle steps in **myvar**-function becomes misrepresented and therefore making the var-value wrong.
+From the plot we can see that **myvar** differs from **var** +- 4 through the entire array. This difference is quite big since the real variance is **1** (from the random samples). We get the same error size range, no matter how many numbers are used for calculation. My function works well on samples with smaller values (10^3 for example). When increasing the subset on X with 1 sample, the variance from **myvar** increases or decreases drastically, while variance from **var** is stable. The problem here occurs when calculating **sum(x^2 - ave^2)** in **myvar**, because the actually small difference between **x^2 - ave^2** increases due to overflow which misrepresents these numbers. This is why I see such a big difference when increasing the sample size with 1.
+
+Some examples follow below:
+```{r}
+myvar(xx[1:5001])
+myvar(xx[1:5002])
+myvar(xx[1:5003])
+myvar(xx[1:5004])
+
+```
 
 
 ```{r, echo=FALSE}
@@ -136,9 +145,9 @@ for (i in 2:10000){
 # Plottning the results 
 plot(x=2:10000, y=y, main="Plot of new variance function", xlab = "Size of array used", ylab = "Y = myvar(Xi) - var(Xi)")
 ```
-Here, we see a much small spread from the rear **var** function! The difference is that is intermittent steps is divided by **n**. Because of this, the numbers does not get too big. Thus, preventing overflow. However, we still get some overflow, especially for larger array sizes, but not in the same magnitude as before.
+Here, we see a much small spread from the real **var** function! The difference is that is intermittent steps is divided by **n**. Because of this, the numbers does not get too big. Thus, preventing overflow. However, we still get some overflow, especially for larger array sizes, but not in the same magnitude as before.
 
-## 4. Binomial Coefficient
+## Question 4: Binomial Coefficient
 ```{r, echo=FALSE}
 # Writing all the functions
 aa = function(n, k){
@@ -183,13 +192,18 @@ lines(x=2:500, y=c, col="green", type='l')
 lines(x=2:500, y=b, col="red", type='l')
 lines(x=2:500, y=a, col="blue", type='l')
 legend("topleft", legend=c("choose()", "c", "b", "a"), lwd=c(1,1,1,1),col=c("black", "green", "red", "blue"))
+
+#plot(x=2:500, y=exp(choose), main="second plot", col="black", ylim=c(-1,10^120), type='l', xlab = "n (k = n/2)", ylab = "log-value")
+#lines(x=2:500, y=exp(a), col="blue", type='l')
 ```
 **Note**: I did log of all values to make then more manageable and that choose() is plotted behind C in the graph.
 
-From the plot we can see that both **A** and **C** overflows, however at different values.
-At around **n=200**, A starts to overflow and at **n=300** B starts to overflow. **C** start to overflow at the same time as **choose()** does. This can be explained by the terms used in calculation. The term **prod(1:n)** makes **A** overflow first and **prod((k+1):n)** makes **B** overflow. None of these term occurs in **C**, it avoids multiplying the largest numbers. Thus, preventing overflow.
+From reasoning above we suspect that A will overflow earlier than B due to more intermediate steps that needs to be calculated. With the same reasoning, B will overflow earlier than C.
 
+From the plot we can see that both **A** and **B** stops showing at **n=180** and **n=280** respectively. This is explained by that larger n-values produce either **Inf** or **Nan**, which means that overflow is occurring. Choose() seems to have the same behavior as **C**.
 
-### All code for this report
+Overflow is explained by the terms used in calculations. The term **prod(1:n)** makes **A** overflow first and **prod((k+1):n)** makes **B** overflow second. None of these term occurs in **C**, it avoids multiplying the largest numbers. Thus, preventing overflow.
+
+### All code for this report:
 ```{r ref.label=knitr::all_labels(), echo=TRUE, eval=FALSE}
 ```

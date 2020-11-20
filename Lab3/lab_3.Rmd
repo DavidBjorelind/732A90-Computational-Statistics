@@ -32,54 +32,65 @@ power_func = function(x, alpha, tmin){
   return(res)
 }
 
-xgrid = seq(0, 200, length.out = 100)
+xgrid = seq(0.001, 100, length.out = 200)
 
-c = 1
-alpha = 2
-tmin = 10
+c = 6 # Will vary throughout the lab
+
+# Majorizing constant
+y = func(seq(0,100, length.out = 200), c)
+major_const = max(y)
+
+alpha = 2 # Pick a good value
+tmin = 5 # Fixed for entire lab
 f_val = func(xgrid, c)
 power_val = power_func(xgrid, alpha, tmin)
 
-grid = seq(0.001, 200, length.out = 10000)
+grid = seq(0.001, 100, length.out = 10000)
 vals = func(grid, c)
-pos = sum(vals[1:(10000/200)])/sum(vals) # Density between 0 to 1, meaning probability for value to occur there
+pos = sum(vals[1:(10000*(tmin/100))])/sum(vals) # Density between 0 to 1, meaning probability for value to occur there
+
+fx = func(seq(tmin,100, length.out = 200), c)
+fy = power_func(seq(tmin,100, length.out = 200), alpha, tmin)
+#major_const = max(fx/fy)
+major_const = 1
 
 plot(x = xgrid, y = f_val, type='l', col="black", ylab = "y-values", ylim=c(0, 0.05), main="f and fp")
-lines(x = xgrid, y = power_val, type='l', col="red")
+lines(x = xgrid, y = power_val*major_const, type='l', col="red")
 
 ```
-One problem is that the two functions has different support. The power-law is supported on (Tmin, inf) while f(x) has support on (0, inf). This means that support for (0, Tmin) is missing from power-law.
-
-```{r, echo=FALSE}
-#majorizing = function(y, tmin, alpha){
-#  if (y<tmin){
-#    return(density)
-#  } else {
-#    return(rplcon(n=1, xmin=tmin, alpha=alpha))
-#  }
-#}
-
-```
+One problem is that the two functions has different support. The power-law is supported on (Tmin, inf) while f(x) has support on (0, inf). This means that support for (0, Tmin) is missing from power-law. to account for this, a proposal density from a uniform distribution is used for (0, Tmin). Now, the proposal density has the support (0, Inf). **Alpha** is picked so that the shape of **fp** looks similar to **f**, see plot above. A higher number could have been used, but Alpha=2 works.
 
 ### 2.
 ```{r, echo=FALSE}
 
-acc_rej = function(tmin, alpha, p){
+acc_rej = function(c, tmin, alpha, p){
+  fx = func(seq(tmin,100, length.out = 200), c)
+  fy = power_func(seq(tmin,100, length.out = 200), alpha, tmin)
+  major_const2 = max(fx/fy)
+  major_const1 = max(func(seq(0.001,100, length.out = 200), c))
+  reject = 0
+  er = p*(1-(1/major_const1)) + (1-p)*(1-(1/major_const2)) # Not correct
+  
   while (1<2) {
     choice = rbinom(1,1,p)
     if (choice == 1){
-      y = runif(1, 0,1)
-      major_dens = power_func(y, alpha, tmin)
-      c = 1
+      y = runif(1, 0, tmin)
+      major_dens = 1
+      major_const = major_const1
+    
     } else{
       y = rplcon(n=1, xmin=tmin, alpha=alpha)
-      major_dens = 1
-      c = 1
+      major_dens = power_func(y, alpha, tmin)
+      major_const = major_const2
+      
     }
-    # Different values for c
     u = runif(1, 0,1)
-    if(u <= func(y)/(major_dens*c)){ # 1 if unif and f_power else
-      return(y)
+    if(u*major_dens*major_const <= func(y, c)){
+      return(c(y, reject, er))
+      
+    } else {
+      # Rejected!
+      reject = reject+1
     }
   }
 }
@@ -88,24 +99,53 @@ acc_rej = function(tmin, alpha, p){
 http://www.columbia.edu/~ks20/4703-Sigman/4703-07-Notes-ARM.pdf
 ### 3.
 ```{r, echo=FALSE}
-# Generate a large sample
 n_samples = 1000
-rejects = 0 # Global variable to count number of rejections
-for(i in 1:n_samples){
-  
-}
 
+#mean = mean(samples[,1])
+#var = var(samples[,1])
+#rrate = sum(samples[,2])/n_samples
+#cat('c = ', c, 'gives: \nMean rejection rate: ', rrate, '\nMean: ', mean, '\nVariance: ', var)
+
+cs = c(3, 4, 5, 6, 7, 8)
+for (j in cs){
+  samples = matrix(nrow = n_samples, ncol = 3)
+  for(i in 1:n_samples){
+    sam = acc_rej(j, tmin, alpha, pos)
+    #if (sam[1] >10000) sam[1]=0
+    samples[i,] = sam
+  }
+
+  mean = mean(samples[,1])
+  var = var(samples[,1])
+  rrate = sum(samples[,2])/n_samples
+  cat('\nc = ', j, 'gives: \nMean rejection rate: ', rrate, '\nMean: ', mean, '\nVariance: ', var)
+  hist(samples[,1],breaks=(max(samples[,1])-min(samples[,1]))/1, freq = FALSE, xlim=c(0,100), main="Histogram of samples", xlab="")
+  hist(samples[,2],breaks=100, freq = TRUE, main="Hisogram of rejections", xlab="")
+}
 ```
+It can be seen that when **c** increases, the mean and variance increases with it. Judging from the behavior of **c** on **f(x)**, as **c** decreases the higher the peak at the start becomes. A high **c**-value creates a low peak and a more smooth graph. 
+
+Rejection rates...
 
 ## Question 2: Laplace distribution
 
 ### 1.
 ```{r, echo=FALSE}
+# New function
+# Inverse CDF method
+inv_de = function(y){
+  return(log(2*y))
+}
+
+
 
 ```
 
 ### 2. 
 ```{r}
+# Target density: N(0,1)
+# Majorizing density: DE(0,1)
+
 
 ```
 

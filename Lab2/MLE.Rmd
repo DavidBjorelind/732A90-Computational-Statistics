@@ -1,0 +1,24 @@
+---
+title: "Maths"
+author: "David Björelind"
+date: "11/24/2020"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+The PDF of a normal distribution is $\frac{1}{\sigma\sqrt{2\pi}}*e^{-\frac{1}{2} (\frac{x-\mu}{\sigma})^2}$. The Likelihood then becomes
+
+$L =(\frac{1}{2\pi\sigma^2})^{n/2} * exp(\frac{-\sum_{i=1}^n (x_i-\mu)^2}{2\sigma^2})$ after multiplying the PDF over i=1 to n. 
+
+The log-likehood is then $-\frac{n}{2}log(\frac{1}{2\pi\sigma^2}) - \frac{1}{2\sigma^2} \sum_{i=1}^n (x_i-\mu)^2$ after taking the log of the likelihood. for this expression, we want to find how to pick $\mu$ and $\sigma$ so that we maximize it. The derivative of the log-likelihood is calculated with regards to $\mu$ and $\sigma$ and set = 0 to find the optimal values. 
+
+$\frac{dL}{d\mu} = \frac{2n( \bar{x} - \mu )}{2\sigma^2} = 0$
+
+$\frac{dL}{d\sigma} = -\frac{n}{\sigma} + \frac{1}{\sigma^3} \sum_{i=1}^n (\bar{x}-\mu)^2 = 0$
+
+
+This produces an MLE estimator for $\mu$ which is $\hat{\mu} = \bar{x}$, the sample mean. The MLE estimator for $\sigma$ is $\hat{\sigma}^2 = \frac{1}{n} \sum_{i=1}^n (x_i - \bar{x})^2$.
+

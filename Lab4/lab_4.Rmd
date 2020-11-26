@@ -1,0 +1,98 @@
+---
+title: "732A90: Lab 4"
+author: "David Björelind, davbj395"
+date: "11/25/2020"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning=FALSE, message=FALSE)
+# Include packages here
+
+```
+## Question 1: Computations with Metropolis–Hastings
+
+### 1.
+```{r, echo=FALSE}
+pdf = function(x){
+  return(exp(-x)*x^5)
+}
+
+metro_hastings = function(start, niter){
+  res = array(0, niter)
+  res[1] = start
+  for(i in 2:niter){
+    y = rnorm(1, mean=res[i-1] , sd=1)#, log=TRUE)
+    u = runif(1, 0, 1)
+    alpha = min(1, (pdf(y)*dnorm(res[i-1], mean=y , sd=1, log=TRUE))/(pdf(res[i-1])*dnorm(y, mean=res[i-1] , sd=1, log=TRUE)) )
+    if(u< alpha){
+      res[i] = y
+    } else {
+      #print('alpha > u')
+      res[i] = res[i-1]
+    }
+  }
+  
+  return(res)
+}
+
+samples = metro_hastings(20, 5000)
+plot(samples, type='l', main='Samples from Metropolis Hastings: log-normal')
+```
+
+### 2.
+```{r, echo=FALSE}
+metro_hastings = function(start, niter){
+  res = array(0, niter)
+  res[1] = start
+  for(i in 2:niter){
+    y = rchisq(1, df=floor(res[i-1]))
+    u = runif(1, 0, 1)
+    alpha = min(1, (pdf(y)*dchisq(res[i-1], df=floor(y)))/(pdf(res[i-1])*dchisq(y, df=floor(res[i-1]))))
+    if(u< alpha){
+      res[i] = y
+    } else {
+      #print('alpha > u')
+      res[i] = res[i-1]
+    }
+  }
+  
+  return(res)
+}
+
+samples = metro_hastings(20, 5000)
+plot(samples, type='l', main='Samples from Metropolis Hastings: chi-2 distribution')
+```
+
+### 3.
+There is a short burn-in period of about 20 iterations for both proposal distributions. The produces samples are varying from about 3 to 10 for both distributions. The mean and variance of the samples are also the same. Looking on the plots however, we can see some differences. Samples from the log-normal distribution is more smooth, and the samples from chi-2 distribution have higher (and lower) extreme values.
+
+
+```{r, echo=FALSE}
+
+```
+
+### 4.
+```{r, echo=FALSE}
+
+```
+
+### 5.
+```{r, echo=FALSE}
+
+```
+
+### 6.
+```{r, echo=FALSE}
+
+```
+
+
+## Another chunk
+```{r}
+
+```
+
+### Include all code for this report
+```{r ref.label=knitr::all_labels(), echo=TRUE, eval=FALSE}
+```
